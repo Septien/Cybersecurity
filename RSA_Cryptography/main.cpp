@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
-#include "RSA.h"
+#include "rsa_cryptosys.hpp"
 
 using namespace std;
 
@@ -19,9 +19,16 @@ int main()
     cout << "Para los numeros primos: " << p << " " << q << ".\n";
     cout << "La llave publica es: " << pK[0] << ", " << pK[1] << endl;
     cout << "La llave privada es: " << sK[0] << ", " << sK[1] << endl;
+    //unsigned long int m = 42;
     vector<unsigned long int> m{6, 7, 42};
     cout << "Mensaje a encriptar: " << m[0] << " " << m[1] << " " << m[2] << endl;
     cout << "Mensaje encriptado: ";
+    /*unsigned long int c = 0;
+    c = rsa.encrypt(m);
+    cout << c << endl;
+    cout << "Mensaje descencriptado: ";
+    unsigned long int mp = rsa.decrypt(c);
+    cout << mp << endl;*/
     vector<unsigned long int> c;
     for (unsigned int i = 0; i < m.size(); i++)
     {
