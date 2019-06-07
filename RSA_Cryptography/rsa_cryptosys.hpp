@@ -11,23 +11,23 @@
 
 class RSA {
 public:
-    void computeN(long int p, long int q);
-    void generateE(long int p, long int q);
-    void generateD(long int p, long int q);
-    long int gcd(long int a, long int b);
-    std::vector<long int> extended_gcd(long int a, long int b);
-    long int encrypt(long int m);
-    long int decrypt(long int c);
+    void computeN(unsigned long int p, unsigned long int q);
+    void computeE(unsigned long int p, unsigned long int q);
+    void computeD(unsigned long int p, unsigned long int q);
+    unsigned long int gcd(unsigned long int a, unsigned long int b);
+    std::vector<unsigned long int> extended_gcd(unsigned long int a, unsigned long int b);
+    unsigned long int encrypt(unsigned long int m);
+    unsigned long int decrypt(unsigned long int c);
 
-    std::vector<long int> getPublicKey();
-    std::vector<long int> getSecretKey();
+    std::vector<unsigned long int> getPublicKey();
+    std::vector<unsigned long int> getSecretKey();
 private:
-    long int e;
-    long int n;
-    long int d;
-    long int phin;
+    unsigned long int e;
+    unsigned long int n;
+    unsigned long int d;
+    unsigned long int phin;
 
-    long int modularExp(long int a, long int b, long int n);
-}
+    unsigned long int modularExp(unsigned long int a, unsigned long int b, unsigned long int n);
+};
 
 #endif // #RSA_CRYPTOSYS
