@@ -86,13 +86,16 @@ std::vector<unsigned long int> RSA::getSecretKey()
     return std::vector<unsigned long int>{this->d, this->n};
 }
 
+// computes b^e mod m
 unsigned long int RSA::modularExp(unsigned long int b, unsigned long int e, unsigned long int m)
 {
-    unsigned long int c = 1, ep = 0;
-    while (ep < e)
+    // Get the ans = b % m
+    unsigned long int ans = b % m;
+    unsigned long int mul = ans;
+    // Multiply ans b - 1 times
+    for (long int i = 1; i < e; i++)
     {
-        ep++;
-        c = (b * c) % m;
+        ans = (ans * mul) % m;
     }
-    return c;
+    return ans;
 }
