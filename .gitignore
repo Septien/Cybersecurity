@@ -1,1 +1,6 @@
 *.jpg
+faces/
+CMakeFiles/
+*.cmake
+CMakeCache.txt
+Makefile
