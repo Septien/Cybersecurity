@@ -4,3 +4,5 @@ CMakeFiles/
 *.cmake
 CMakeCache.txt
 Makefile
+*.gch
+*.out
