@@ -6,3 +6,5 @@ CMakeCache.txt
 Makefile
 *.gch
 *.out
+.DS_Store
+main
