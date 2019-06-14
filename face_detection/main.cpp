@@ -42,6 +42,6 @@ int main(int argc, char **argv)
     imshow(window1, img);
 
     waitKey(0);
-    destroyAllWindows;
+    destroyAllWindows();
     return 0;
 }
