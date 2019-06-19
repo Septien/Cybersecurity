@@ -20,17 +20,15 @@ int s(int x)
 vector<uchar> toArray(Mat m)
 {
     vector<uchar> neighbors;
-    if (m.isContinuous())
+    int r = m.rows, c = m.cols;
+    for (int i = 0; i < r; i++)
     {
-        neighbors.assign(m.data, m.data + m.total());
-    }
-    else
-    {
-        for (int i = 0; i < m.rows; ++i)
+        for (int j = 0; j < c; j++)
         {
-            neighbors.insert(neighbors.end(), m.ptr<uchar>(i), m.ptr<uchar>(i) + m.cols);
+            neighbors.push_back(m.at<uchar>(i, j));
         }
     }
+    return neighbors;
 }
 
 // Local binary pattern
@@ -42,11 +40,16 @@ int lbp(Mat kernel, int c, int pKernel)
     int gc = (int)neighbors[c];
     int r = 0;
     int gp = 0;
-    for (int i = 0; i < pKernel; i++)
+    for (int i = 0; i < neighbors.size(); i++)
     {
+        if (i == c)
+        {
+            continue;
+        }
         gp = (int)neighbors[i];
         r += s(gp - gc) * pow(2, i);
     }
+    return r;
 }
 
 // Uniform LBP
@@ -59,9 +62,9 @@ int ulbp(Mat kernel, int c, int pKernel)
     int gc = (int)neighbors[c];
     // Get the 0th pixel
     int gp = (int)neighbors[0];
-    int gp_1 = (int)neighbors[pKernel - 1];
+    int gp_1 = (int)neighbors[pKernel];
     int a0 = fabs(s(gp_1 - gc) - s(gp - gc));
-    for (int i = i; i < pKernel; i++)
+    for (int i = 0; i < neighbors.size(); i++)
     {
         gp_1 = (int)neighbors[i - 1];
         if (i == c)
@@ -104,7 +107,7 @@ vector<double> constructHistogram(Mat img, Rect Region, int P)
             // Get the ROI
             kernel = img(roiR);
             // Compute the ULBP value (number of transitions)
-            ulbpV = ulbp(kernel, int((kerWidth * kerHeight) / 2), (kerWidth * kerHeight) - 1);
+            ulbpV = ulbp(kernel, int((kerWidth * kerHeight) / 2) + 1, (kerWidth * kerHeight) - 1);
             // Compute the LBP value
             lbpV = lbp(kernel, int((kerWidth * kerHeight) / 2), (kerWidth * kerHeight) - 1);
             if (ulbpV <= 2)
