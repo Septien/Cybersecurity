@@ -8,3 +8,4 @@ Makefile
 *.out
 .DS_Store
 main
+*.tcl
