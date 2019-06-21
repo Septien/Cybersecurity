@@ -37,7 +37,7 @@ int lbp(Mat kernel, int c, int pKernel)
     // Store neighbors in array
     vector<uchar> neighbors = toArray(kernel);
     // Get the cth pixel
-    int gc = (int)neighbors[c];
+    int gc = (int)neighbors.at(c);
     int r = 0;
     int gp = 0;
     for (int i = 0; i < neighbors.size(); i++)
@@ -57,16 +57,15 @@ int ulbp(Mat kernel, int c, int pKernel)
 {
     // Store neighbors in array
     vector<uchar> neighbors = toArray(kernel);
-    
     // Get the cth pixel
-    int gc = (int)neighbors[c];
+    int gc = (int)neighbors.at(c);
     // Get the 0th pixel
     int gp = (int)neighbors[0];
-    int gp_1 = (int)neighbors[pKernel];
+    int gp_1 = (int)neighbors.at(neighbors.size() - 1);
     int a0 = fabs(s(gp_1 - gc) - s(gp - gc));
-    for (int i = 0; i < neighbors.size(); i++)
+    for (int i = 2; i < neighbors.size(); i++)
     {
-        gp_1 = (int)neighbors[i - 1];
+        gp_1 = (int)neighbors.at(i - 1);
         if (i == c)
         {
             continue;
@@ -75,11 +74,12 @@ int ulbp(Mat kernel, int c, int pKernel)
         {
             gp_1 = (int)neighbors[i - 2];
         }
-        gp = (int)neighbors[i];
+        gp = (int)neighbors.at(i);
         a0 += fabs(s(gp - gc) - s(gp_1 - gc));
     }
     return a0;
 }
+
 
 vector<double> constructHistogram(Mat img, Rect Region, int P)
 {
