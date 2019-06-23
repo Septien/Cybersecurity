@@ -17,7 +17,7 @@ int s(int x)
     return 0;
 }
 
-vector<uchar> toArray(Mat m)
+vector<uchar> toArray(Mat m, int cth,int &gc)
 {
     vector<uchar> neighbors;
     int r = m.rows, c = m.cols;
@@ -25,6 +25,11 @@ vector<uchar> toArray(Mat m)
     {
         for (int j = 0; j < c; j++)
         {
+            if (i + j == cth)
+            {
+                gc = (int) m.at<uchar>(i, j);
+                continue;
+            }
             neighbors.push_back(m.at<uchar>(i, j));
         }
     }
@@ -34,10 +39,9 @@ vector<uchar> toArray(Mat m)
 // Uniform LBP
 int ulbp(Mat kernel, int c, int pKernel)
 {
-    // Store neighbors in array
-    vector<uchar> neighbors = toArray(kernel);
-    // Get the cth pixel
-    int gc = (int)neighbors.at(c);
+    int gc = 0;
+    // Store neighbors in array and get cth pixel
+    vector<uchar> neighbors = toArray(kernel, c, gc);
     // Get the 0th pixel
     int gp = (int)neighbors[0];
     int gp_1 = (int)neighbors.at(neighbors.size() - 1);
@@ -45,14 +49,6 @@ int ulbp(Mat kernel, int c, int pKernel)
     for (int i = 2; i < neighbors.size(); i++)
     {
         gp_1 = (int)neighbors.at(i - 1);
-        if (i == c)
-        {
-            continue;
-        }
-        if (i - 1 == c)
-        {
-            gp_1 = (int)neighbors[i - 2];
-        }
         gp = (int)neighbors.at(i);
         a0 += fabs(s(gp - gc) - s(gp_1 - gc));
     }
@@ -62,18 +58,13 @@ int ulbp(Mat kernel, int c, int pKernel)
 // Local binary pattern
 int lbp(Mat kernel, int c, int pKernel)
 {
-    // Store neighbors in array
-    vector<uchar> neighbors = toArray(kernel);
-    // Get the cth pixel
-    int gc = (int)neighbors.at(c);
+    int gc = 0;
+    // Store neighbors in array and get cth pixel
+    vector<uchar> neighbors = toArray(kernel, c, gc);
     int r = 0;
     int gp = 0;
     for (int i = 0; i < neighbors.size(); i++)
     {
-        if (i == c)
-        {
-            continue;
-        }
         gp = (int)neighbors[i];
         r += s(gp - gc) * pow(2, i);
     }
@@ -103,6 +94,79 @@ Mat gray2lbp(Mat img, vector<int> &histogram, int kWidth, int kHeight)
     }
     return lbpImg;
 }
+
+/* Get the region ulbp */
+vector<int> regionUlbpH(Mat reg, int kWidth, kHeight)
+{
+    vector<int> histogram;
+    int row = reg.rows, cols = reg.cols;
+}
+
+/* Computes the ulbp histogram per region for the img image */
+void ulbpHistogram(Mat img, vector< vector<int> > &histograms, int rWidth, int rHeight)
+{
+    int rows = img.rows, cols = img.cols;
+    histograms.clear();
+    int i, j;
+    for (i = 1; i < rows; i++)
+    {
+        for (j = 1; j < cols; j++)
+        {
+            Rect region = Rect(i - 1, j - 1, rWidth, rHeight);
+            Mat Region = img(roi);
+        }
+    }
+}
+
+/* A contains a representation of a binary number */
+void increment(vector<int> A)
+{
+    int i = 0;
+    int n = A.size();
+    for (i = 0; i < n; i++)
+    {
+        A.at(i) = 0;
+        i = i + 1;
+    }
+    if (i < n)
+    {
+        A.at(i) = 1;
+    }
+}
+
+/* Generates all the ULBP patterns values for a veccinity of p pixels*/
+void generateUlbpValues(vector<int> &bi, int p)
+{
+    int n = p * (p - 1) + 3;
+    bi.clear();
+    bi.assign(n, 0);
+    vector<int> A;
+    A.assign(p, 0);
+    int countChgs;
+    for (int i = 0; i < n - 1; i++)
+    {
+        // Get the number of changes 0 - 1, 1 - 0 on A
+        countChgs = 0;
+        for (int j = 1; j < p; j++)
+        {
+            if (A.at(i - 1) != A.at(i) )
+            {
+                countChgs++;
+            }
+        }
+        if (countChgs <= 2)
+        {
+            // Get then integer value
+            int value = 0;
+            for (int j = 0; j < p; j++)
+            {
+                value += pow(2, A.at(i));
+            }
+            bi.push_back(value);
+        }
+    }
+}
+
 
 int main(int argc, char **argv)
 {
@@ -139,7 +203,7 @@ int main(int argc, char **argv)
 
     // Get the LBP image
     vector<int> histogram;
-    Mat lbpImg = gray2lbp(faces[1], histogram, 3, 3);
+    Mat lbpImg = gray2lbp(faces[0], histogram, 3, 3);
 
     String window1 = "Original Image";
     String window2 = "Face";
