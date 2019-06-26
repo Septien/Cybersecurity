@@ -26,26 +26,20 @@ void increment(vector<int> &A)
 }
 
 /* Generates all the ULBP patterns values for a veccinity of p pixels*/
-void generateUlbpValues(vector<int> &bi, vector< vector<int> > &ulbpv, int p)
+void generateUlbpValues(vector<int> &bi, int p)
 {
     int n = p * (p - 1) + 2;
     int m = pow(2, p);
-    ulbpv.clear();
     bi.clear();
     vector<int> A;
     A.assign(p, 0);
     int countChgs;
     for (int i = 0; i < m; i++)
     {
-        for (int k = 0; k < A.size(); k++)
-        {
-            cout << A[i] << endl;
-        }
         // Get the number of changes 0 - 1, 1 - 0 on A
         countChgs = 0;
         for (int j = 1; j < p; j++)
         {
-            cout << j << endl;
             if (A.at(j - 1) != A.at(j) )
             {
                 countChgs++;
@@ -60,7 +54,6 @@ void generateUlbpValues(vector<int> &bi, vector< vector<int> > &ulbpv, int p)
                 value += A.at(j) * pow(2, j);
             }
             bi.push_back(value);
-            ulbpv.push_back( vector<int>(A) );
         }
         increment(A);
     }
@@ -131,13 +124,10 @@ int lbp(Mat kernel, int c, int pKernel)
 }
 
 /* Transforms a gray-scale image to an lbp-code based image. */
-Mat gray2lbp(Mat img, vector<int> &histogram, int kWidth, int kHeight)
+Mat gray2lbp(Mat img, int kWidth, int kHeight)
 {
     int rows = img.rows, cols = img.cols;
     Mat lbpImg = Mat(rows, cols, CV_8U, Scalar(0));
-    histogram.clear();
-    histogram.assign(pow(2, (kWidth * kHeight) - 1), 0);
-    cout << histogram.size() << endl;
     int i, j;
     int lbpV = 0;
     for (i = 1; i < rows - 1; i++)
@@ -147,15 +137,13 @@ Mat gray2lbp(Mat img, vector<int> &histogram, int kWidth, int kHeight)
             Rect roi = Rect(i - 1, j - 1, kWidth, kHeight);
             Mat region = img(roi);
             lbpV = lbp(region, (int)((kWidth * kHeight) / 2), (kWidth * kHeight) - 1);
-            cout << lbpV << endl;
-            histogram.at(lbpV)++;
             lbpImg.at<uchar>(j, i) = (uchar)lbpV;
         }
     }
     return lbpImg;
 }
 
-void upgradeHistogram(vector<int> &histogram, vector<int> &bk, int lbpV)
+void upgradeHistogram(vector<double> &histogram, vector<int> &bk, int lbpV)
 {
     int k, n = bk.size();
     for (k = 0; k < n - 1; k++)
@@ -168,8 +156,9 @@ void upgradeHistogram(vector<int> &histogram, vector<int> &bk, int lbpV)
     }
 }
 
-vector<int> normalizeHistogram(vector<int> histogram)
+vector<double> normalizeHistogram(vector<double> histogram)
 {
+    vector<double> h(histogram);
     int hTotal = 0;
     int n = histogram.size(), i;
     // Compute the total value of the histogram
@@ -180,8 +169,9 @@ vector<int> normalizeHistogram(vector<int> histogram)
     // Normalize histogram
     for (i = 0; i < n; i++)
     {
-        histogram.at(i) /= hTotal;
+        h.at(i) /= hTotal;
     }
+    return h;
 }
 
 /* Get the region ulbp histogram.
@@ -189,28 +179,28 @@ vector<int> normalizeHistogram(vector<int> histogram)
     kWidth, kHeight -> widht and height of the kernel.
     bk -> array with decimal values uniform lbp.
  */
-vector<int> regionUlbpH(Mat reg, vector<int> &bk, int kWidth, int kHeight)
+vector<double> regionUlbpH(Mat reg, vector<int> &bk, int kWidth, int kHeight)
 {
     // Create and initilize histogram
     int n = bk.size();
-    vector<int> histogram;
+    vector<double> histogram;
     histogram.assign(n, 0);
-    int row = reg.rows, cols = reg.cols;
+    int rows = reg.rows, cols = reg.cols;
     // Compute the LBP value for each pixel, and check if it is uniform
     int i, j, k;
-    int ulbpV, lbpV;.
+    int ulbpV = 0, lbpV = 0;
     // For each pixel of the region, compute the lbp value, and check if it is uniform or not,
     // update histogram accordingly.
-    for (i = 1 i < rows; i++)
+    for (i = 1; i < rows - 1; i++)
     {
-        for (j = 1; j < rows; j++)
+        for (j = 1; j < cols - 1; j++)
         {
             Rect kernelR = Rect(i - 1, j - 1, kWidth, kHeight);
             Mat kernel = reg(kernelR);
             ulbpV = ulbp(kernel, (int)((kWidth * kHeight) / 2), (kWidth * kHeight) - 1);
             lbpV = lbp(kernel, (int)((kWidth * kHeight) / 2), (kWidth * kHeight) - 1);
             // Check if pattern is uniform
-            if (ulbpv <= 2)
+            if (ulbpV <= 2)
             {
                 // Pattern is uniform
                 upgradeHistogram(histogram, bk, lbpV);
@@ -226,21 +216,21 @@ vector<int> regionUlbpH(Mat reg, vector<int> &bk, int kWidth, int kHeight)
 }
 
 /* Computes the ulbp histogram per region for the img image */
-void ulbpHistogram(Mat img, vector< vector<int> > &histograms, vector<int> &bk, int rWidth, int rHeight)
+void ulbpHistogram(Mat img, vector< vector<double> > &histograms, vector<int> &bk, int rWidth, int rHeight)
 {
     int rows = img.rows, cols = img.cols;
     histograms.clear();
     int i, j;
     // Generate the regions
-    int ulbpV = 0, lbpV = 0;
-    for (i = 1; i < rows; i += rWidth)
+    for (i = 1; i < rows - rHeight - 1; i += rWidth)
     {
-        for (j = 1; j < cols; j += rHeight)
+        for (j = 1; j < cols - rWidth - 1; j += rHeight)
         {
-            Rect region = Rect(i - 1, j - 1, rWidth + 1, rHeight + 1);
+            Rect region = Rect(j - 1, i - 1, rHeight + 1, rWidth + 1);
             Mat Region = img(region);
             // Generate the region histogram and append to histogram
-            histograms.push_back(regionUlbpH(Region, bk, 3, 3));
+            vector<double> h(regionUlbpH(Region, bk, 3, 3));
+            histograms.push_back(h);
         }
     }
 }
@@ -252,7 +242,7 @@ void readImage(String filename, Mat &clrImg, Mat &eqImg)
     if (img.empty())
     {
         cout << "Could not load image." << endl;
-        return -1;
+        exit(-1);
     }
     //  Graying
     Mat imgGray;
@@ -263,7 +253,7 @@ void readImage(String filename, Mat &clrImg, Mat &eqImg)
 }
 
 /* Apply the Haar algorith for finding faces on the image (front-looking). */
-void returnFaces(vector<Mat> &faces)
+void returnFaces(Mat eqImg, vector<Mat> &faces)
 {
     // Load the trained classifiers
     CascadeClassifier face_cascade = CascadeClassifier("haarcascade_frontalface_default.xml");
@@ -279,6 +269,48 @@ void returnFaces(vector<Mat> &faces)
         // Extract ROI of face and extend borders of image (1 pixel)
         copyMakeBorder(eqImg(facesR[i]), extImg, 1, 1, 1, 1, BORDER_REPLICATE);
         faces.push_back(extImg);
-        rectangle(img, corner1, corner2, Scalar(255, 0, 0));
     }
+}
+
+int main(int argc, char **argv)
+{
+    Mat img, eqImg;
+    readImage("faces/image_0001.jpg", img, eqImg);
+    vector<Mat> faces;
+    returnFaces(eqImg, faces);
+    Mat lbpImg;
+    lbpImg = gray2lbp(faces[0], 3, 3);
+    vector<int> bk;
+    int p = 8;
+    generateUlbpValues(bk, p);
+    vector< vector<double> > histograms;
+    ulbpHistogram(eqImg, histograms, bk, 16, 16);
+
+    // Write results to file
+    ofstream out("histograms.txt", ofstream::out);
+    for (size_t i = 0; i < histograms.size(); i++)
+    {
+        size_t n = histograms[i].size();
+        for (size_t j = 0; j < n - 1; j++)
+        {
+            out << histograms[i][j] << ",";
+        }
+        out << histograms[i][n - 1] << endl;
+    }
+
+    String window1 = "Original Image";
+    String window2 = "Face";
+    String window3 = "ulbpv image";
+
+    namedWindow(window1, WINDOW_AUTOSIZE);
+    namedWindow(window2, WINDOW_AUTOSIZE);
+    namedWindow(window3, WINDOW_AUTOSIZE);
+
+    imshow(window1, img);
+    imshow(window2, faces[0]);
+    imshow(window3, lbpImg);
+
+    waitKey(0);
+    destroyAllWindows();
+    return 0;
 }
