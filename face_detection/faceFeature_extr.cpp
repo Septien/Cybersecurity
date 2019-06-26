@@ -241,7 +241,7 @@ void readImage(String filename, Mat &clrImg, Mat &eqImg)
     Mat img = imread(filename);
     if (img.empty())
     {
-        cout << "Could not load image." << endl;
+        cout << "Could not load image: " << filename << endl;
         exit(-1);
     }
     //  Graying
@@ -274,41 +274,51 @@ void returnFaces(Mat eqImg, vector<Mat> &faces)
 
 int main(int argc, char **argv)
 {
-    Mat img, eqImg;
-    readImage("faces/image_0001.jpg", img, eqImg);
-    vector<Mat> faces;
-    returnFaces(eqImg, faces);
-    Mat lbpImg;
-    lbpImg = gray2lbp(faces[0], 3, 3);
-    vector<int> bk;
-    int p = 8;
-    generateUlbpValues(bk, p);
-    vector< vector<double> > histograms;
-    ulbpHistogram(eqImg, histograms, bk, 16, 16);
-
-    // Write results to file
-    ofstream out("histograms.txt", ofstream::out);
-    for (size_t i = 0; i < histograms.size(); i++)
+    String ext = ".jpg";
+    String fullName;
+    int totalImg = 41;
+    int i = 0;
+    Mat img, grayImg, imgEq;
+    String name;
+    for (i = 1; i <= totalImg; i++)
     {
-        size_t n = histograms[i].size();
-        for (size_t j = 0; j < n - 1; j++)
+        name = "faces/image_0";
+        char buffer[4];
+        if (i < 10)
         {
-            out << histograms[i][j] << ",";
+            sprintf(buffer, "00%d", i);
         }
-        out << histograms[i][n - 1] << endl;
+        else if (i < 100)
+        {
+            sprintf(buffer, "0%d", i);
+        }
+        Mat img, eqImg;
+        name += buffer;
+        name += ext;
+        readImage(name, img, eqImg);
+        vector<Mat> faces;
+        returnFaces(eqImg, faces);
+        Mat lbpImg;
+        lbpImg = gray2lbp(faces[0], 3, 3);
+        vector<int> bk;
+        int p = 8;
+        generateUlbpValues(bk, p);
+        vector< vector<double> > histograms;
+        ulbpHistogram(eqImg, histograms, bk, 16, 16);
+
+        // Write results to file
+        string file = "histograms/histograms" + to_string(i) + ".txt";
+        ofstream out(file, ofstream::out);
+        for (size_t i = 0; i < histograms.size(); i++)
+        {
+            size_t n = histograms[i].size();
+            for (size_t j = 0; j < n - 1; j++)
+            {
+                out << histograms[i][j] << ",";
+            }
+            out << histograms[i][n - 1] << endl;
+        }   
     }
-
-    String window1 = "Original Image";
-    String window2 = "Face";
-    String window3 = "ulbpv image";
-
-    namedWindow(window1, WINDOW_AUTOSIZE);
-    namedWindow(window2, WINDOW_AUTOSIZE);
-    namedWindow(window3, WINDOW_AUTOSIZE);
-
-    imshow(window1, img);
-    imshow(window2, faces[0]);
-    imshow(window3, lbpImg);
 
     waitKey(0);
     destroyAllWindows();
