@@ -61,16 +61,16 @@ std::vector<unsigned long int> RSA::extended_gcd(unsigned long int a, unsigned l
     return coeff;
 }
 
-/* Encrypts the messages contained at m using the secret key. */
+/* Encrypts the messages contained at m using the public key. */
 unsigned long int RSA::encrypt(unsigned long int m)
 {
-    return modularExp(m, this->e, this->n);
+    return modularExp(m, this->d, this->n);
 }
 
-/* Decrypts the cipher text c using the public key. */
+/* Decrypts the ciphertext c using the private key. */
 unsigned long int RSA::decrypt(unsigned long int c)
 {
-    return modularExp(c, this->d, this->n);
+    return modularExp(c, this->e, this->n);
 }
 
 /* Get the computed public key */
