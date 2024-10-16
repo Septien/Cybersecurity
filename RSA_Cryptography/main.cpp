@@ -25,7 +25,7 @@ int main()
 
     // Generar mensajes
     vector<unsigned long int> m;
-    int n = 1;
+    int n = 16;
     for (int i = 0; i < n; i++)
         m.push_back(rand()%10000000);
 
